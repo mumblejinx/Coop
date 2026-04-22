@@ -1,10 +1,10 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { auth } from './firebase';
 import { onAuthStateChanged, signInAnonymously, signOut } from 'firebase/auth';
 
 const Ctx = createContext<any>(null);
 
-export function FirebaseProvider({ children }: { children: React.ReactNode }) {
+export function FirebaseProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
