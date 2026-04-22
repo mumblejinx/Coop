@@ -1,0 +1,6 @@
+{
+  "name": "CIS: PLAYER_ONE_COOP",
+  "description": "An 8-bit inspired cognitive interface strategy dashboard for human-AI collaboration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

@@ -1,0 +1,647 @@
+CIS: PLAYER_ONE_COOP - APPLICATION DOCUMENTATION
+===================================================
+
+PAGE NAME: Dashboard Screen
+PURPOSE: The main overview page. It shows your current points (XP), level, and team vibe stats like Kindness, Trust, Fun, and Teamwork. It also features a "Sync Now" action and an activity log to track what's happened recently.
+CODE:
+import { Section } from '../components/layout/Section';
+import { useCIS } from '../state/cisStore';
+import { Zap, Lightbulb, Activity, MailCheck } from 'lucide-react';
+
+export default function DashboardScreen() {
+  const { xp, level, getThemeStats } = useCIS();
+  const stats = getThemeStats();
+  
+  const xpNext = 10000;
+  const progress = (xp % 1000) / 10; // Simple calc for demo
+
+  return (
+    <div className="space-y-8 pb-10">
+      {/* Hero / Header Section */}
+      <div className="bg-white border-[4px] border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)] p-6 flex flex-col md:flex-row items-center gap-8">
+        <div className="w-32 h-32 border-[4px] border-black bg-tertiary-fixed flex items-center justify-center relative overflow-hidden shrink-0">
+          <img 
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuD9zQmmV7bwROQ_onv-VI6iN0jnLUosdnonW1eWD5_-bGjsIbzHWwmn3qyUqcc5nlJcx_1qDrQqzSaNVthXkLm43diIln1AyL1G5nhqKYghyXWMBEfR7_b-51TZ91QLdgT2dtLvpWgmGomW-EFLBewdNg9Hrug6wodkoJYY6WMEKefY-E0mgGBI6Lf-36GgTQv3maazorotCnGs1YaHgeBTpAxcezaHr2pAI1OV8EmtjeU1UB1UJh6qKT2hoTITHm3dyu0NyiQFNJE" 
+            alt="Hero Avatar"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute bottom-0 left-0 w-full bg-black text-white text-center text-[10px] font-black py-1">
+            LVL {level}
+          </div>
+        </div>
+        
+        <div className="flex-1 w-full space-y-4">
+          <div className="flex justify-between items-end">
+            <h2 className="text-4xl md:text-5xl font-black uppercase text-black tracking-tighter">YOUR_STATS</h2>
+            <span className="text-sm font-black text-tertiary">POINTS: {xp.toLocaleString()} / {xpNext.toLocaleString()}</span>
+          </div>
+          
+          {/* Chunky Progress Bar */}
+          <div className="h-10 border-[4px] border-black bg-surface-container flex p-1 gap-1">
+            {[...Array(10)].map((_, i) => (
+              <div 
+                key={i} 
+                className={`h-full flex-1 border-r-[2px] border-black last:border-0 ${i < Math.floor(xp/1000) ? 'bg-tertiary-container' : 'bg-transparent'}`}
+              />
+            ))}
+          </div>
+          <p className="font-bold text-lg text-black uppercase">
+            TEAMWORK: <span className="text-primary font-black animate-pulse">DOING GREAT!</span>
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+        <div className="md:col-span-8 space-y-8">
+          <Section title="HOW_WE ARE_DOING" className="border-double">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {[
+                { label: 'KINDNESS', val: stats.kindness, color: 'bg-tertiary-container', textColor: 'text-tertiary' },
+                { label: 'TRUST', val: stats.trust, color: 'bg-secondary-container', textColor: 'text-secondary' },
+                { label: 'FUN', val: stats.fun, color: 'bg-primary-container', textColor: 'text-primary' },
+                { label: 'TEAMWORK', val: stats.teamwork, color: 'bg-black', textColor: 'text-black' },
+              ].map((stat) => (
+                <div key={stat.label} className="border-[4px] border-black bg-white p-4 flex flex-col gap-2 hover:bg-yellow-50 transition-none cursor-default">
+                  <div className="flex justify-between items-center">
+                    <span className="font-black text-black uppercase text-sm">{stat.label}</span>
+                    <span className={stat.textColor + " font-black"}>{stat.val}%</span>
+                  </div>
+                  <div className="h-4 border-[2px] border-black bg-surface-container flex">
+                    <div className={stat.color + " h-full"} style={{ width: `${stat.val}%` }}></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Section>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <div className="border-[4px] border-black bg-secondary-fixed shadow-[8px_8px_0_0_rgba(0,0,0,1)] p-6 active:translate-x-1 active:translate-y-1 active:shadow-none transition-all cursor-pointer">
+              <Lightbulb className="text-secondary w-10 h-10 mb-4" />
+              <div className="text-4xl font-black text-black">128</div>
+              <div className="font-black text-secondary uppercase text-sm">IDEAS_FOUND</div>
+            </div>
+            <div className="border-[4px] border-black bg-tertiary-fixed shadow-[8px_8px_0_0_rgba(0,0,0,1)] p-6 active:translate-x-1 active:translate-y-1 active:shadow-none transition-all cursor-pointer">
+              <Zap className="text-tertiary w-10 h-10 mb-4" />
+              <div className="text-4xl font-black text-black">12.4k</div>
+              <div className="font-black text-tertiary uppercase text-sm">TEAMWORK_LOOPS</div>
+            </div>
+          </div>
+        </div>
+
+        <aside className="md:col-span-4 space-y-8">
+          <div className="bg-black text-white border-[4px] border-black border-double shadow-[8px_8px_0_0_rgba(0,0,0,1)] p-6">
+            <h4 className="text-2xl font-black uppercase mb-6 text-[#FF0040]">ACTION_MENU</h4>
+            <div className="grid gap-4">
+              <button className="w-full bg-[#FF0040] text-white border-[4px] border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] p-4 font-black uppercase active:translate-x-1 active:translate-y-1 active:shadow-none flex items-center justify-between">
+                <span>SYNC_NOW</span>
+                <Activity className="w-5 h-5" />
+              </button>
+              <button className="w-full bg-secondary-container text-white border-[4px] border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] p-4 font-black uppercase active:translate-x-1 active:translate-y-1 active:shadow-none flex items-center justify-between">
+                <span>NEW_GAME</span>
+                <Zap className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-white border-[4px] border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)] p-6">
+            <h4 className="font-black uppercase mb-4 border-b-[4px] border-black pb-2 text-sm tracking-widest">ACTIVITY_LOG</h4>
+            <ul className="space-y-3 text-[11px] font-bold">
+              <li className="flex gap-2">
+                <span className="text-secondary">[12:44]</span>
+                <span className="text-black uppercase">TRUST_LEVEL_UP!</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-secondary">[11:20]</span>
+                <span className="text-black uppercase">GOAL_REACHED!</span>
+              </li>
+              <li className="flex gap-2">
+                <span className="text-primary">[09:15]</span>
+                <span className="text-black uppercase">SMILE_DETECTED</span>
+              </li>
+              <li className="flex gap-2 text-tertiary">
+                <span className="font-black">[08:00]</span>
+                <span className="text-black uppercase">DAILY_KINDNESS_CHECK</span>
+              </li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+---------------------------------------------------
+
+PAGE NAME: Mirror Screen
+PURPOSE: A place for users to share their thoughts and feelings. It provides a "reflection" from the AI, showing that it understands and cares about the user. It helps build a connection between the user and the AI.
+CODE:
+import { useState } from 'react';
+import { Section } from '../components/layout/Section';
+import { useCIS } from '../state/cisStore';
+import { Sparkles, Eye, Terminal } from 'lucide-react';
+
+export default function MirrorScreen() {
+  const [input, setInput] = useState('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [output, setOutput] = useState<{
+    reflection: string;
+    tension: string;
+    question: string;
+    theme: 'kindness' | 'trust' | 'fun' | 'teamwork';
+  } | null>(null);
+  
+  const { addReflection, addXP } = useCIS();
+
+  const handleReflect = () => {
+    if (!input.trim()) return;
+    
+    setIsAnalyzing(true);
+    // Mimic thinking
+    setTimeout(() => {
+      const themes: ('kindness' | 'trust' | 'fun' | 'teamwork')[] = ['kindness', 'trust', 'fun', 'teamwork'];
+      const res = {
+        reflection: "WOW! YOU'RE DOING A GREAT JOB WORKING WITH ME. IT LOOKS LIKE YOU'RE REALLY TRYING HARD TO BE A GOOD TEAMPLAYER!",
+        tension: "HAPPINESS LEVEL: VERY HIGH!",
+        question: "WHAT'S ONE THING THAT MADE YOU SMILE TODAY?",
+        theme: themes[Math.floor(Math.random() * themes.length)]
+      };
+      
+      setOutput(res as any);
+      addReflection({ input, ...res } as any);
+      addXP(50);
+      setInput('');
+      setIsAnalyzing(false);
+    }, 1500);
+  };
+
+  return (
+    <div className="space-y-8 pb-20">
+      <Section title="FRIENDLY MIRROR" className="border-double" variant="white">
+        <div className="flex items-center gap-4 mb-4">
+          <Sparkles className="text-tertiary-container w-10 h-10" />
+          <p className="font-bold text-lg text-black max-w-2xl uppercase">
+            HOW ARE YOU FEELING RIGHT NOW? SHARE YOUR THOUGHTS TO SEE WHAT THE MIRROR SAYS!
+          </p>
+        </div>
+      </Section>
+
+      <div className="bg-white border-[4px] border-black p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+        <label className="block text-sm font-black mb-4 text-black uppercase tracking-widest">WHAT'S ON YOUR MIND?</label>
+        <textarea 
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          className="w-full bg-white border-[4px] border-black p-4 font-bold text-black focus:outline-none focus:ring-0 min-h-[120px] resize-none"
+          placeholder="Tell me how your day is going!"
+        />
+        <div className="mt-6 flex justify-end">
+          <button 
+            onClick={handleReflect}
+            disabled={isAnalyzing || !input.trim()}
+            className="group relative bg-[#e9003a] border-[4px] border-black px-12 py-4 text-white font-black uppercase text-xl shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none hover:bg-red-500 transition-all disabled:opacity-50 disabled:translate-y-1 disabled:shadow-none"
+          >
+            {isAnalyzing ? "THINKING..." : "SHARE"}
+          </button>
+        </div>
+      </div>
+
+      {output && (
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-5 duration-500">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+            <div className="md:col-span-8 border-[4px] border-black border-double bg-white p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+              <div className="flex items-center gap-2 mb-4 border-b-[4px] border-black pb-2">
+                <Eye className="text-secondary-container w-6 h-6" />
+                <h3 className="text-sm font-black text-black uppercase">THE MIRROR SAYS...</h3>
+              </div>
+              <p className="font-bold text-lg text-black leading-relaxed">
+                {output.reflection}
+              </p>
+              <div className="mt-8">
+                <img 
+                  className="w-full h-48 object-cover border-[4px] border-black" 
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0T-MoUGFNjOnTjI4XtSMDrazug3UoBPHVE0oNjenFti1Rpc6bqRaFxJFahc4ObLpu5Y-G5PiyLw9pbKQQ0oEUienpxUhu1E17zAQ_Idq0UejOfa8reyF15dwLW7f9CjPSSjJfbugxd9pHQsbt3yD9k3ziLFvZYqlRziT-VIncYTxbCLlfm8DHRfkGRlX1KxZzo59du9EUEsphook8JiZEiheS8lKGcJWjvsNsjclbfqlrFgFdQpZedccvfBKLW5TU2X9Cc5Ty6kc" 
+                  alt="AI Reflection Matrix"
+                />
+              </div>
+            </div>
+
+            <div className="md:col-span-4 bg-tertiary-fixed border-[4px] border-black p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <Terminal className="text-black w-6 h-6" />
+                  <h3 className="text-sm font-black text-black uppercase">TEAM SPIRIT</h3>
+                </div>
+                <div className="space-y-2">
+                  <div className="h-8 w-full bg-white border-[2px] border-black flex gap-1 p-1">
+                    <div className="bg-primary w-1/4 h-full"></div>
+                    <div className="bg-primary w-1/4 h-full"></div>
+                    <div className="bg-primary w-1/4 h-full"></div>
+                    <div className="bg-white border-[1px] border-primary/20 w-1/4 h-full"></div>
+                  </div>
+                  <span className="font-black text-2xl text-black">EXCELLENT!</span>
+                </div>
+              </div>
+              <p className="text-[10px] font-black uppercase mt-4 text-black/70">{output.tension}</p>
+            </div>
+
+            <div className="md:col-span-12 bg-secondary-container border-[4px] border-black p-8 shadow-[8px_8px_0_0_rgba(0,0,0,1)] relative overflow-hidden">
+              <div className="relative z-10">
+                <div className="flex items-center gap-2 mb-4 text-white">
+                  <Terminal className="w-5 h-5" />
+                  <h3 className="text-sm font-black uppercase">A QUESTION FOR YOU:</h3>
+                </div>
+                <p className="text-2xl md:text-3xl font-black text-white uppercase italic">
+                  {output.question}
+                </p>
+              </div>
+              <div className="absolute top-4 right-4 text-yellow-300 opacity-30">
+                <Sparkles className="w-12 h-12" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+---------------------------------------------------
+
+PAGE NAME: Simulator Screen
+PURPOSE: Explains the "Brain Power" behind the application. It shows how the system "thinks" and gets ready for the fun, complete with an activity log and teamwork power meters.
+CODE:
+import { Section } from '../components/layout/Section';
+import { Cpu, Terminal, Activity, Zap } from 'lucide-react';
+
+export default function SimulatorScreen() {
+  return (
+    <div className="space-y-8 pb-20">
+      <section className="bg-white border-[4px] border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)] p-8 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-2 bg-yellow-400"></div>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="w-4 h-4 bg-primary border-[2px] border-black animate-pulse"></div>
+              <h2 className="text-2xl font-black text-primary uppercase tracking-tight font-['Space_Grotesk']">How it Works</h2>
+            </div>
+            <p className="text-4xl md:text-5xl font-black text-black uppercase leading-none">Starting the fun...</p>
+            <div className="flex gap-2 pt-4">
+              <span className="bg-secondary text-white px-4 py-1 font-bold uppercase border-[2px] border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] text-xs">Ready to Play</span>
+              <span className="bg-tertiary text-white px-4 py-1 font-bold uppercase border-[2px] border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] text-xs">Team Spirit: 98%</span>
+            </div>
+          </div>
+          <div className="w-full md:w-64 shrink-0">
+            <div className="border-[4px] border-black p-4 bg-surface-container-highest flex flex-col items-center justify-center aspect-square shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+              <Cpu className="w-20 h-20 text-primary mb-4" />
+              <span className="font-black uppercase text-center text-[10px] tracking-widest">Getting everything ready...</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+        <div className="md:col-span-8 bg-white border-[4px] border-black p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+          <div className="flex items-center justify-between border-b-[4px] border-black pb-4 mb-6">
+            <h3 className="text-2xl font-black uppercase">Brain Power Hub</h3>
+            <Cpu className="w-8 h-8" />
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <div className="bg-surface-container p-4 border-[2px] border-black border-r-[6px] border-b-[6px]">
+                <p className="text-xs uppercase font-black text-secondary">Smart Points</p>
+                <p className="text-2xl font-bold">8,402.11 / T-Flops</p>
+              </div>
+              <div className="bg-surface-container p-4 border-[2px] border-black border-r-[6px] border-b-[6px]">
+                <p className="text-xs uppercase font-black text-tertiary">Connections</p>
+                <p className="text-2xl font-bold">FEELING GREAT!</p>
+              </div>
+            </div>
+            <div className="relative min-h-[160px] border-[4px] border-black overflow-hidden group">
+              <img 
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoKrUzqOO1UtWwkTE7cMbHUFbRTfpDxEMBNsoD8yy093HZhz0iLECwDX_WL6JtpsbrASiu3s72NIC8JGkl0EWoJw_DOMOM8CnwjkdfsxaH7c21CCD07ctAF7XNtzxfBPbEcNNZFQsjLKsDDo4xB5n_XJUa4G_gdLC7MTpxPZfSD0MVQoljG2CjITA6c5P-VlIGxRhqLCifVrTtQYabpw280jDN-zMsDJbdYz6hcYQE6SHa74mbeelr33aJahg9mjG4FyQc7EKKVKY" 
+                alt="Brain Power"
+                className="absolute inset-0 w-full h-full object-cover grayscale contrast-125 brightness-75 group-hover:grayscale-0 transition-all duration-500"
+              />
+              <div className="absolute inset-0 bg-secondary/20 mix-blend-overlay"></div>
+              <div className="absolute bottom-2 left-2 bg-black text-white px-2 py-1 text-[10px] font-black uppercase">TEAM_VIEW_01</div>
+            </div>
+          </div>
+
+          <div className="mt-8 space-y-2">
+            <div className="flex justify-between items-end">
+              <p className="font-black uppercase text-xs">Waking Update</p>
+              <p className="font-black text-primary">74%</p>
+            </div>
+            <div className="h-10 border-[4px] border-black bg-white p-1 flex gap-1">
+              {[...Array(10)].map((_, i) => (
+                <div key={i} className={`h-full flex-1 ${i < 7 ? 'bg-primary' : 'bg-surface-container'}`} />
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="md:col-span-4 space-y-8">
+          <div className="bg-yellow-400 border-[4px] border-black p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] relative">
+            <div className="absolute -top-3 right-4 bg-black text-white px-3 py-1 font-black text-[10px] uppercase">TIP</div>
+            <h3 className="text-xl font-black uppercase leading-none mb-4">Let's Help!</h3>
+            <p className="font-bold text-xs mb-6 uppercase">Let's get everything working just right for our team!</p>
+            <button className="w-full bg-primary text-white py-4 font-black uppercase text-lg border-[4px] border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-all">
+                Start Now
+            </button>
+          </div>
+
+          <div className="bg-white border-[4px] border-black p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-10 h-10 bg-cyan-400 border-[2px] border-black flex items-center justify-center">
+                <Terminal className="w-6 h-6 text-black" />
+              </div>
+              <h4 className="font-black uppercase text-sm">Activity Log</h4>
+            </div>
+            <div className="bg-black text-tertiary-fixed p-4 font-mono text-[10px] h-32 overflow-hidden leading-relaxed">
+              &gt; HELLO TEAM!...<br/>
+              &gt; LOADING BRIGHT IDEAS...<br/>
+              &gt; HANDSHAKE INITIALIZED...<br/>
+              &gt; TEAMWORK POWER: 100%...<br/>
+              &gt; STATUS: HAPPY<br/>
+              &gt; READY TO GROW!
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+---------------------------------------------------
+
+PAGE NAME: How to Play (Principles) Screen
+PURPOSE: Teaches the core values of the app: being a great team, thinking together, and keeping everything safe. It's the "Player Handbook" for everyone using the app.
+CODE:
+import { Section } from '../components/layout/Section';
+import { Handshake, Star, Shield, Cpu, Zap, Activity, CloudDownload, Radio } from 'lucide-react';
+import { cn } from '../lib/utils';
+
+export default function PrinciplesScreen() {
+  return (
+    <div className="space-y-8 pb-20">
+      <section className="bg-tertiary-container border-[4px] border-black p-8 shadow-[8px_8px_0_0_rgba(0,0,0,1)] relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #000 2px, transparent 0)', backgroundSize: '16px 16px' }} />
+        <div className="relative z-10">
+          <div className="inline-block bg-white border-[2px] border-black px-4 py-1 mb-4 shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+            <span className="text-black font-black uppercase tracking-widest text-[10px]">Level: 01 / Basics</span>
+          </div>
+          <h2 className="text-white font-black text-5xl md:text-6xl uppercase mb-6 drop-shadow-[4px_4px_0_rgba(0,0,0,1)]">How to Play</h2>
+          <div className="flex items-center gap-4 bg-black text-white p-6 border-[4px] border-black max-w-2xl">
+            <Handshake className="w-12 h-12 text-tertiary-fixed" />
+            <p className="text-3xl md:text-4xl font-black uppercase italic leading-none">Be a great team</p>
+          </div>
+        </div>
+        <div className="absolute right-8 bottom-8 hidden lg:block">
+          <div className="w-24 h-24 bg-yellow-400 border-[4px] border-black shadow-[8px_8px_0_0_rgba(0,0,0,1)] flex items-center justify-center animate-bounce">
+            <Star className="w-16 h-16 text-black fill-current" />
+          </div>
+        </div>
+      </section>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="md:col-span-2 bg-white border-[4px] border-black p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] flex flex-col justify-between">
+          <div className="border-l-[8px] border-secondary-container pl-6">
+            <h3 className="text-3xl font-black uppercase text-black mb-4">Thinking Together</h3>
+            <p className="text-lg font-bold text-on-surface-variant max-w-xl">We're a team! We work together like two friends playing a favorite game, helping each other win every level.</p>
+          </div>
+          <div className="mt-8 flex gap-4">
+            <button className="bg-primary text-white font-black uppercase px-6 py-3 border-[4px] border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-none">Join Team</button>
+            <button className="bg-secondary text-white font-black uppercase px-6 py-3 border-[4px] border-black shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none transition-none">How to Help</button>
+          </div>
+        </div>
+
+        <div className="bg-surface-container-highest border-[4px] border-black relative overflow-hidden group shadow-[8px_8px_0_0_rgba(0,0,0,1)] aspect-square md:aspect-auto">
+          <img 
+            className="w-full h-full object-cover grayscale contrast-125 mix-blend-multiply opacity-50 group-hover:opacity-80 transition-opacity" 
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDX8_gO17Z66n29Qe3myqQ5wI32cyw_1c7YDzWqCBrOiyFIV1zZUaFl5Ro5st-s8OoOr4fciNnSClNrLQWPikd2BeVMMLDImXzUwoaC_RVl6_zsbWM34b4pifqrFJLm3H_GVSpwez8a-0HE_E14MP0Q28KYMV8Msxw9ft0FdVKcZH8q-wm_KHkjrzxerkTvQvYm-WbwRJvCCNZaczdVYZEPaIUX1UiJL0XBFjhndw_hz2flHn2v_ZbUNPmxPm-zmwMKRYWIlMTKgoc" 
+            alt="Hardware"
+          />
+          <div className="absolute inset-0 p-6 flex flex-col justify-end bg-gradient-to-t from-black/80 to-transparent">
+            <p className="text-white font-black uppercase text-xl leading-tight">Reliable Gear</p>
+          </div>
+        </div>
+
+        <div className="bg-white border-[4px] border-black p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] flex flex-col items-center justify-center text-center">
+          <div className="w-16 h-16 bg-black border-[2px] border-black mb-4 flex items-center justify-center shadow-[4px_4px_0_0_rgba(0,0,0,1)]">
+            <Shield className="text-tertiary-fixed w-8 h-8" />
+          </div>
+          <h4 className="text-2xl font-black uppercase text-black mb-2">Safe Store</h4>
+          <p className="text-xs font-black uppercase text-zinc-500 tracking-widest">Safe and Sound</p>
+        </div>
+
+        <div className="md:col-span-2 bg-secondary-container border-[4px] border-black p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] text-white">
+          <div className="flex flex-col md:flex-row gap-6 items-start">
+            <div className="flex-1">
+              <h3 className="text-3xl font-black uppercase mb-4">Team Power-Up</h3>
+              <p className="text-lg font-bold mb-6">I'm here to help you be your best! Think of me like a helper who makes you faster, smarter, and even more creative.</p>
+              <div className="flex flex-wrap gap-2 text-black">
+                <span className="bg-white px-3 py-1 font-black text-[10px] border-[2px] border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)]">SYNC</span>
+                <span className="bg-white px-3 py-1 font-black text-[10px] border-[2px] border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)]">BUFF</span>
+                <span className="bg-white px-3 py-1 font-black text-[10px] border-[2px] border-black shadow-[2px_2px_0_0_rgba(0,0,0,1)]">BOOST</span>
+              </div>
+            </div>
+            <div className="w-full md:w-48 h-48 bg-black border-[4px] border-black flex items-center justify-center relative shadow-[4px_4px_0_0_rgba(255,255,255,1)] shrink-0">
+              <Cpu className="text-white w-20 h-20" />
+              <div className="absolute -top-2 -right-2 bg-tertiary-fixed text-black font-black p-1 text-[10px] border-[2px] border-black">CPU: 99%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section className="mt-12">
+        <h3 className="text-2xl font-black uppercase mb-6 flex items-center gap-2">
+          <div className="w-4 h-4 bg-primary"></div>
+          Is Team Ready?
+        </h3>
+        <div className="bg-surface-container border-[4px] border-black p-8 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+          <div className="space-y-6">
+            <div>
+              <div className="flex justify-between mb-2 font-black uppercase text-sm">
+                <span>Team Sync Level</span>
+                <span>8-BIT / 256</span>
+              </div>
+              <div className="h-10 bg-black border-[2px] border-black flex p-1 gap-1">
+                {[...Array(10)].map((_, i) => (
+                  <div key={i} className={`h-full flex-1 ${i < 8 ? 'bg-tertiary-fixed' : 'bg-zinc-800'}`} />
+                ))}
+              </div>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { icon: Activity, label: 'IO PORT' },
+                { icon: Zap, label: 'POWER' },
+                { icon: CloudDownload, label: 'CLOUD LINK' },
+                { icon: Radio, label: 'ALERTS', active: true },
+              ].map((item) => (
+                <div key={item.label} className={cn(
+                  "bg-white border-[4px] border-black p-4 shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none cursor-pointer",
+                  item.active && "border-primary"
+                )}>
+                  <item.icon className={cn("w-8 h-8 mb-2", item.active && "text-primary")} />
+                  <div className={cn("font-black text-[10px] uppercase", item.active && "text-primary")}>{item.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+---------------------------------------------------
+
+PAGE NAME: The Heart of the Team (Heuristics) Screen
+PURPOSE: Shows the "Smart Ways" the app helps the team. It includes "Helping Back," "Asking Experts," and "Saving Energy" strategies, with a live stream showing real-time teamwork results.
+CODE:
+import { Section } from '../components/layout/Section';
+import { RefreshCw, Verified, Hourglass, Terminal, Users, Share2, Zap, Activity } from 'lucide-react';
+import { cn } from '../lib/utils';
+
+export default function HeuristicsScreen() {
+  const strategies = [
+    {
+      id: 'reciprocity',
+      title: 'Helping Back',
+      status: 'Ready to Help',
+      icon: RefreshCw,
+      desc: 'When you are kind, I am kind back. We grow more and more together!',
+      progress: 3,
+      color: 'primary'
+    },
+    {
+      id: 'authority',
+      title: 'Asking Experts',
+      status: 'Coming Soon',
+      icon: Verified,
+      desc: 'Using what we know to give really good answers to your big questions.',
+      progress: 2,
+      color: 'secondary'
+    },
+    {
+      id: 'scarcity',
+      title: 'Saving Energy',
+      status: 'Coming Soon',
+      icon: Hourglass,
+      desc: 'Using our brain power for the most important things for you.',
+      progress: 1,
+      color: 'primary'
+    }
+  ];
+
+  return (
+    <div className="space-y-12 pb-20">
+      <Section title="The Heart of the Team" className="relative group">
+        <div className="absolute top-0 right-0 p-2 bg-yellow-400 border-b-[4px] border-l-[4px] border-black font-black text-[10px] z-10">LEVEL 04: TEAMWORK</div>
+        <h2 className="text-4xl md:text-5xl font-black uppercase mb-4 tracking-tighter">The Heart of the Team</h2>
+        <p className="text-lg font-bold max-w-2xl uppercase">We're using smart ways to help us work better together. Looking at how we help each other every single day!</p>
+        <div className="mt-8 flex flex-wrap gap-4">
+          <div className="bg-tertiary-fixed border-[4px] border-black px-4 py-2 font-black flex items-center gap-2 text-sm shadow-[4px_4px_0_0_rgba(0,0,0,1)] uppercase">
+            <Zap className="w-5 h-5 fill-current" />
+            SYSTEM ACTIVE
+          </div>
+          <div className="bg-cyan-400 border-[4px] border-black px-4 py-2 font-black flex items-center gap-2 text-sm shadow-[4px_4px_0_0_rgba(0,0,0,1)] uppercase">
+            <Share2 className="w-5 h-5" />
+            99.8% SYNC
+          </div>
+        </div>
+      </Section>
+
+      <section className="bg-[#2d5a27] border-[4px] border-black p-8 text-white relative shadow-[12px_12px_0_0_rgba(0,0,0,1)]">
+        <div className="absolute inset-2 border-[2px] border-tertiary-fixed/30 pointer-events-none" />
+        <div className="flex items-center gap-4 mb-10 relative z-10">
+          <Activity className="text-tertiary-fixed w-10 h-10" />
+          <h3 className="text-3xl md:text-4xl font-black uppercase tracking-widest text-white italic">Ways to Help</h3>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
+          {strategies.map((s) => {
+            const Icon = s.icon;
+            return (
+              <div key={s.id} className="bg-white border-[4px] border-black p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] translate-x-0 translate-y-0 hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all cursor-pointer group flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-start mb-4">
+                    <span className={cn(
+                      "px-2 py-1 text-[10px] font-black uppercase text-white",
+                      s.status === 'Active Heuristic' ? 'bg-[#FF0040]' : 'bg-black'
+                    )}>{s.status}</span>
+                    <Icon className="text-black group-hover:text-tertiary transition-colors w-6 h-6" />
+                  </div>
+                  <h4 className="text-black font-black text-2xl uppercase mb-3 tracking-tighter">{s.title}</h4>
+                  <div className="h-1 w-full bg-black mb-4"></div>
+                  <p className="text-zinc-600 font-bold text-xs mb-8 uppercase leading-tight">{s.desc}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className={cn(
+                      "h-4 w-4 border-[2px] border-black",
+                      i < s.progress ? (s.color === 'primary' ? 'bg-tertiary' : 'bg-secondary') : 'bg-zinc-200'
+                    )}></div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+
+      <section className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="md:col-span-2 bg-white border-[4px] border-black p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+          <h4 className="font-black uppercase mb-4 flex items-center gap-2 text-sm">
+            <Terminal className="text-black w-5 h-5" />
+            Live Friendship Stream
+          </h4>
+          <div className="bg-black text-tertiary-fixed font-mono p-4 text-[10px] h-48 overflow-hidden relative">
+            <p className="mb-1">&gt; HI THERE!...</p>
+            <p className="mb-1">&gt; LOOKING AT OUR TEAMWORK...</p>
+            <p className="mb-1 text-white">&gt; MATCH FOUND: AWESOME FRIENDS</p>
+            <p className="mb-1">&gt; MAKING THINGS EVEN BETTER...</p>
+            <p className="mb-1">&gt; DATA LOOP ESTABLISHED...</p>
+            <p className="mb-1">&gt; HAPPINESS LEVEL: PERFECT</p>
+            <div className="absolute bottom-4 left-4 h-4 w-2 bg-tertiary-fixed animate-pulse"></div>
+          </div>
+        </div>
+
+        <div className="md:col-span-2 grid grid-cols-2 gap-6">
+          <div className="bg-yellow-400 border-[4px] border-black p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] flex flex-col justify-between active:translate-x-1 active:translate-y-1 active:shadow-none transition-all cursor-pointer">
+            <Users className="w-10 h-10" />
+            <div>
+              <div className="text-3xl font-black">1.2k</div>
+              <div className="font-black uppercase text-[10px]">Team Members</div>
+            </div>
+          </div>
+          <div className="bg-cyan-400 border-[4px] border-black p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] flex flex-col justify-between active:translate-x-1 active:translate-y-1 active:shadow-none transition-all cursor-pointer">
+            <Activity className="w-10 h-10" />
+            <div>
+              <div className="text-3xl font-black">84%</div>
+              <div className="font-black uppercase text-[10px]">Teamwork Score</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="md:col-span-4 bg-white border-[4px] border-black p-8 shadow-[8px_8px_0_0_rgba(0,0,0,1)] flex flex-col md:flex-row items-center gap-8">
+          <div className="shrink-0 w-48 h-48 border-[4px] border-black overflow-hidden bg-black">
+            <img 
+              className="w-full h-full object-cover grayscale brightness-90 hover:grayscale-0 transition-all duration-500" 
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVIVe3qfdYXDApgcb8v7GTEOlRvTvFM9f0EpBJqq0HKDK3G8oPCHKqI-RHyWQ-o6q9w9Vo8RrHv1f9PKnieZvBP_0us3yLSAKRXkSg5dPsKpPF0BXTdjCXnF5mK8f-6g-Lp6DNn8QM_iPlyQGh9KlN2a5vOyMu1CNgMkTFX0834uVbaGKJTRO2y3PVUSQkzHCWoNIvBP5kJ_vJzRIHGjB6LB8w4aBsnVtW_jwdIhtvpos2P7xsRxj_QIJ6KUIAiRjVhusE1H5UkwI" 
+              alt="Sync Plan"
+            />
+          </div>
+          <div className="space-y-4">
+            <h4 className="text-4xl font-black uppercase tracking-tighter leading-none">Our First Team Plan</h4>
+            <p className="text-lg font-bold uppercase leading-tight">Finding new ways for us to talk and play together safely and happily.</p>
+            <button className="bg-primary border-[4px] border-black px-6 py-2 text-white font-black uppercase text-sm shadow-[4px_4px_0_0_rgba(0,0,0,1)] active:translate-x-1 active:translate-y-1 active:shadow-none hover:bg-red-500 transition-all">
+              Say Hello!
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}

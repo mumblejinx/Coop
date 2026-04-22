@@ -1,0 +1,89 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile containing stats and identity",
+      "type": "object",
+      "properties": {
+        "xp": {
+          "type": "number",
+          "description": "Total experience points"
+        },
+        "level": {
+          "type": "number",
+          "description": "User level"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the user account was created"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp of the last update"
+        }
+      },
+      "required": ["xp", "level", "createdAt", "updatedAt"]
+    },
+    "GlobalStats": {
+      "title": "Global Stats",
+      "description": "Aggregated metrics for the entire community",
+      "type": "object",
+      "properties": {
+        "totalXp": { "type": "number" },
+        "totalReflections": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["totalXp", "totalReflections", "updatedAt"]
+    },
+    "Reflection": {
+      "title": "Reflection",
+      "description": "A single user thought and the AI's response",
+      "type": "object",
+      "properties": {
+        "input": {
+          "type": "string",
+          "description": "User's input text"
+        },
+        "reflection": {
+          "type": "string",
+          "description": "AI's reflected response"
+        },
+        "question": {
+          "type": "string",
+          "description": "AI's follow-up question"
+        },
+        "theme": {
+          "type": "string",
+          "enum": ["kindness", "trust", "fun", "teamwork"],
+          "description": "The determined theme of the interaction"
+        },
+        "timestamp": {
+          "type": "number",
+          "description": "Unix timestamp of the reflection"
+        },
+        "serverTimestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server-side timestamp for ordering"
+        }
+      },
+      "required": ["input", "reflection", "theme", "timestamp", "serverTimestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Private user profile"
+    },
+    "/users/{userId}/reflections/{reflectionId}": {
+      "schema": "Reflection",
+      "description": "User's history of reflections"
+    },
+    "/global/stats": {
+      "schema": "GlobalStats",
+      "description": "Public community status"
+    }
+  }
+}
