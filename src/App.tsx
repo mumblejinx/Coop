@@ -4,13 +4,14 @@ import Mirror from './screens/MirrorScreen';
 import Heuristics from './screens/HeuristicsScreen';
 import { useFirebase } from './core/FirebaseProvider';
 import { useCIS } from './state/cisStore';
+import { useProfile } from './hooks/useProfile';
 import { LayoutDashboard, Sparkles, Gavel, LogOut, User as UserIcon } from 'lucide-react';
 import { cn } from './lib/utils';
 
 export default function App() {
   const [view, setView] = useState('dashboard');
   const { user, loading, logOut } = useFirebase();
-  const { initSync } = useCIS();
+  const { initSync, profile } = useCIS();
 
   useEffect(() => {
     if (user?.uid) {
@@ -40,8 +41,14 @@ export default function App() {
       <header className="bg-white border-b-[4px] border-black h-16 sticky top-0 z-40 px-4">
         <div className="max-w-4xl mx-auto h-full flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-black flex items-center justify-center">
-              <UserIcon className="text-white w-5 h-5" />
+            <div className="w-10 h-10 border-[3px] border-black bg-zinc-100 overflow-hidden shadow-[2px_2px_0_0_rgba(0,0,0,1)]">
+              {profile?.avatar?.src ? (
+                <img src={profile.avatar.src} className="w-full h-full object-cover" alt="UserAvatar" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-black">
+                   <UserIcon className="text-white w-5 h-5" />
+                </div>
+              )}
             </div>
             <h1 className="font-black uppercase italic tracking-tighter text-xl">P1_COOP</h1>
           </div>

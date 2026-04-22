@@ -1,5 +1,5 @@
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../core/firebase';
+import { db } from '../lib/firebase';
 
 export const useProfile = () => {
   const getProfile = async (uid: string) => {

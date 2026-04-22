@@ -7,17 +7,11 @@ import { Gamepad2, Settings } from 'lucide-react';
 
 export default function DashboardScreen() {
   const { user } = useFirebase();
-  const { getProfile, saveProfile } = useProfile();
-  const { xp, level } = useCIS();
+  const { saveProfile } = useProfile();
+  const { xp, level, getThemeStats, profile } = useCIS();
+  const stats = getThemeStats();
 
-  const [profile, setProfile] = useState<any>(null);
   const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      getProfile(user.uid).then(setProfile);
-    }
-  }, [user]);
 
   const defaultAvatar = 'https://lh3.googleusercontent.com/aida-public/AB6AXuD9zQmmV7bwROQ_onv-VI6iN0jnLUosdnonW1eWD5_-bGjsIbzHWwmn3qyUqcc5nlJcx_1qDrQqzSaNVthXkLm43diIln1AyL1G5nhqKYghyXWMBEfR7_b-51TZ91QLdgT2dtLvpWgmGomW-EFLBewdNg9Hrug6wodkoJYY6WMEKefY-E0mgGBI6Lf-36GgTQv3maazorotCnGs1YaHgeBTpAxcezaHr2pAI1OV8EmtjeU1UB1UJh6qKT2hoTITHm3dyu0NyiQFNJE';
 
@@ -57,7 +51,6 @@ export default function DashboardScreen() {
           onSelect={(a) => {
             if (user) {
               saveProfile(user.uid, { avatar: a });
-              setProfile({ avatar: a });
               setOpen(false);
             }
           }}
@@ -70,6 +63,41 @@ export default function DashboardScreen() {
              <div className="text-xs font-black uppercase text-[#7eff51] tracking-widest mb-1">Intelligence Rank</div>
              <div className="text-6xl font-black italic uppercase">LVL {level}</div>
            </div>
+           
+           <div className="mt-8 space-y-4">
+             <div className="text-[10px] font-black uppercase text-white/60">Core Vibe Matrix</div>
+             <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                   <div className="text-[10px] font-black uppercase flex justify-between">
+                      <span>Kindness</span>
+                      <span>{stats.kindness}%</span>
+                   </div>
+                   <div className="h-1 bg-white/20"><div className="h-full bg-[#7eff51]" style={{ width: `${stats.kindness}%` }} /></div>
+                </div>
+                <div className="space-y-1">
+                   <div className="text-[10px] font-black uppercase flex justify-between">
+                      <span>Trust</span>
+                      <span>{stats.trust}%</span>
+                   </div>
+                   <div className="h-1 bg-white/20"><div className="h-full bg-cyan-400" style={{ width: `${stats.trust}%` }} /></div>
+                </div>
+                <div className="space-y-1">
+                   <div className="text-[10px] font-black uppercase flex justify-between">
+                      <span>Fun</span>
+                      <span>{stats.fun}%</span>
+                   </div>
+                   <div className="h-1 bg-white/20"><div className="h-full bg-yellow-400" style={{ width: `${stats.fun}%` }} /></div>
+                </div>
+                <div className="space-y-1">
+                   <div className="text-[10px] font-black uppercase flex justify-between">
+                      <span>Teamwork</span>
+                      <span>{stats.teamwork}%</span>
+                   </div>
+                   <div className="h-1 bg-white/20"><div className="h-full bg-orange-400" style={{ width: `${stats.teamwork}%` }} /></div>
+                </div>
+             </div>
+           </div>
+
            <div className="mt-4 pt-4 border-t-[2px] border-white/20">
              <div className="text-[10px] font-black uppercase">Next Unlock at Level {level + 1}</div>
            </div>

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { auth } from './firebase';
+import { auth, db } from '../lib/firebase';
 import { onAuthStateChanged, signInAnonymously, signOut } from 'firebase/auth';
 
 const Ctx = createContext<any>(null);
