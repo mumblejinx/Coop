@@ -14,7 +14,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+export const db = getFirestore(app "ai-studio-c4ff6291-23dc-4510-b9a3-5873f24e7532");
 
 export function handleFirestoreError(error: any, operationType: string, path: string | null): never {
   const user = auth.currentUser;
