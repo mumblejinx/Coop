@@ -1,31 +1,26 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { initializeFirestore } from 'firebase/firestore';
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
-// ✅ Your Firebase config
+// Your Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyDlvsIeoRNbvsZxBYiQMrwjQFkWT2mqiNg",
   authDomain: "cooperativeintelligencesystems.firebaseapp.com",
   projectId: "cooperativeintelligencesystems",
-  storageBucket: "cooperativeintelligencesystems.appspot.com",
+  storageBucket: "cooperativeintelligencesystems.firebasestorage.app",
   messagingSenderId: "638085884789",
   appId: "1:638085884789:web:b1ac76ece8b0b1db9c813c"
 };
 
-// ✅ Initialize Firebase app
+// Initialize app
 const app = initializeApp(firebaseConfig);
 
-// ✅ Auth
+// Auth
 export const auth = getAuth(app);
 
-// ✅ Firestore (CONNECTED TO YOUR ACTUAL DATABASE)
-export const db = initializeFirestore(
-  app,
-  {},
-  "ai-studio-c4ff6291-23dc-4510-b9a3-5873f24e7532"
-);
+// ✅ Firestore (THIS is the key fix)
+export const db = getFirestore(app);
 
-// ✅ Error helper (unchanged)
 export function handleFirestoreError(
   error: any,
   operationType: string,
@@ -37,7 +32,7 @@ export function handleFirestoreError(
     error: error instanceof Error ? error.message : String(error),
     operationType,
     path,
-    authInfo: { userId: user?.uid || 'anonymous' }
+    authInfo: { userId: user?.uid || "anonymous" }
   };
 
   console.error("🔥 Firestore Error:", errorInfo);
