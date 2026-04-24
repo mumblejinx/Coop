@@ -2,58 +2,48 @@ import { useState } from 'react';
 import { Section } from '../components/layout/Section';
 import { useCIS } from '../state/cisStore';
 import { analyzeReflection } from '../lib/ai';
-import { Sparkles, Brain } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { useFirebase } from '../components/FirebaseProvider';
 
-interface Turn {
-  input: string;
-  reflection: string;
-  question: string;
-  theme: string;
+type Mode = 'conversation' | 'story';
+
+interface Message {
+  sender: 'user' | 'ai';
+  text: string;
 }
 
 export default function MirrorScreen() {
+  const [mode, setMode] = useState<Mode | null>(null);
   const [input, setInput] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [currentTurn, setCurrentTurn] = useState<Turn | null>(null);
-  const [history, setHistory] = useState<Turn[]>([]);
-  const [mode, setMode] = useState<'conversation' | 'story' | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [currentAI, setCurrentAI] = useState<{ reflection: string; question: string } | null>(null);
 
   const { user } = useFirebase();
-  const {
-    addReflectionToFirebase,
-    updateXPInFirebase,
-    getHeuristicModifiers
-  } = useCIS();
+  const { addReflectionToFirebase, updateXPInFirebase, getHeuristicModifiers } = useCIS();
 
   const handleReflect = async () => {
     if (!input.trim() || !user || !mode) return;
 
-    const userInput = input;
-    setInput('');
     setIsAnalyzing(true);
 
+    const userMessage = input;
+
+    setMessages(prev => [...prev, { sender: 'user', text: userMessage }]);
+
     try {
-      const res = await analyzeReflection(
-        userInput,
-        getHeuristicModifiers(),
-        mode
-      );
+      const res = await analyzeReflection(userMessage, getHeuristicModifiers(), mode);
 
-      const turn: Turn = {
-        input: userInput,
-        reflection: res.reflection,
-        question: res.question,
-        theme: res.theme
-      };
+      setCurrentAI(res);
 
-      setCurrentTurn(turn);
-      setHistory(prev => [...prev, turn]);
-
-      setIsAnalyzing(false);
+      setMessages(prev => [
+        ...prev,
+        { sender: 'ai', text: res.reflection },
+        { sender: 'ai', text: res.question }
+      ]);
 
       await addReflectionToFirebase(user.uid, {
-        input: userInput,
+        input: userMessage,
         reflection: res.reflection,
         question: res.question,
         theme: res.theme as any
@@ -61,8 +51,12 @@ export default function MirrorScreen() {
 
       await updateXPInFirebase(user.uid, 50);
 
+      // ✅ CLEAR INPUT AFTER SUBMIT
+      setInput('');
+
     } catch (e) {
       console.error(e);
+    } finally {
       setIsAnalyzing(false);
     }
   };
@@ -72,53 +66,42 @@ export default function MirrorScreen() {
 
       {/* MODE SELECT */}
       {!mode && (
-        <div className="border-[4px] border-black bg-white p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
-          <p className="font-black uppercase mb-4">
-            Choose your mode
-          </p>
-
-          <div className="flex gap-4">
-            <button
-              onClick={() => setMode('conversation')}
-              className="bg-black text-white px-6 py-3 font-bold"
-            >
-              Conversation
-            </button>
-
-            <button
-              onClick={() => setMode('story')}
-              className="bg-[#e9003a] text-white px-6 py-3 font-bold"
-            >
-              Story Game
-            </button>
+        <Section title="MIRROR">
+          <div className="space-y-4">
+            <p className="font-bold uppercase">Choose your path:</p>
+            <div className="flex gap-4">
+              <button
+                onClick={() => setMode('conversation')}
+                className="bg-blue-500 border-[4px] border-black px-6 py-3 font-black text-white"
+              >
+                Conversation
+              </button>
+              <button
+                onClick={() => setMode('story')}
+                className="bg-purple-500 border-[4px] border-black px-6 py-3 font-black text-white"
+              >
+                Story Game
+              </button>
+            </div>
           </div>
-        </div>
+        </Section>
       )}
 
+      {/* ACTIVE MODE */}
       {mode && (
         <>
-          {/* TOP */}
           <Section title="MIRROR">
-            {!currentTurn ? (
-              <div className="flex items-center gap-4">
-                <Sparkles className="w-8 h-8" />
-                <p className="font-bold uppercase">
-                  {mode === 'story'
-                    ? 'You enter a world... what do you do first?'
-                    : 'How are you feeling right now?'}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <p className="font-bold italic text-lg">
-                  {currentTurn.reflection}
-                </p>
-                <div className="border-t-2 border-black pt-3">
-                  <p className="font-bold text-lg">
-                    {currentTurn.question}
-                  </p>
-                </div>
-              </div>
+            <div className="flex items-center gap-4 mb-4">
+              <Sparkles className="w-8 h-8" />
+              <p className="font-bold uppercase">
+                {currentAI ? currentAI.reflection : "Begin your interaction..."}
+              </p>
+            </div>
+
+            {currentAI && (
+              <p className="font-bold text-lg mt-4">
+                {currentAI.question}
+              </p>
             )}
           </Section>
 
@@ -128,11 +111,7 @@ export default function MirrorScreen() {
               value={input}
               onChange={e => setInput(e.target.value)}
               className="w-full border-[4px] border-black p-4 font-bold min-h-[120px]"
-              placeholder={
-                mode === 'story'
-                  ? 'What do you do next?'
-                  : 'Respond...'
-              }
+              placeholder="Type your response..."
             />
 
             <div className="mt-6 flex justify-end">
@@ -141,59 +120,25 @@ export default function MirrorScreen() {
                 disabled={isAnalyzing || !input.trim()}
                 className="bg-[#e9003a] border-[4px] border-black px-12 py-4 text-white font-black uppercase text-xl"
               >
-                {isAnalyzing ? "THINKING..." : "RESPOND"}
+                {isAnalyzing ? "THINKING..." : "SHARE"}
               </button>
             </div>
           </div>
 
-          {/* THEME */}
-          {currentTurn && (
-            <div className="border-[4px] border-black bg-yellow-400 p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
-              <div className="flex items-center gap-2 mb-2">
-                <Brain className="w-5 h-5" />
-                <span className="font-black uppercase text-sm">
-                  Theme Detected
-                </span>
-              </div>
-              <div className="text-2xl font-black uppercase">
-                {currentTurn.theme}
-              </div>
-            </div>
-          )}
-
-          {/* SYSTEM */}
-          {currentTurn && (
-            <div className="border-[4px] border-black bg-black text-green-400 p-6 font-mono text-sm shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
-              <p>&gt; MEMORY STORED</p>
-              <p>&gt; TRUST NETWORK UPDATED</p>
-              <p>&gt; PATTERN RECOGNITION ACTIVE</p>
-            </div>
-          )}
-
           {/* TRANSCRIPT */}
-          {history.length > 0 && (
-            <div className="border-[4px] border-black bg-white p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] max-h-64 overflow-y-auto">
-              <h3 className="font-black uppercase mb-4">
-                Transcript
-              </h3>
-
-              <div className="space-y-4 text-sm">
-                {history.map((turn, i) => (
-                  <div key={i} className="border-b pb-2">
-                    <p className="font-bold">You:</p>
-                    <p>{turn.input}</p>
-
-                    <p className="font-bold mt-2">Mirror:</p>
-                    <p>{turn.reflection}</p>
-
-                    <p className="italic text-xs mt-1">
-                      → {turn.question}
-                    </p>
-                  </div>
-                ))}
-              </div>
+          <div className="bg-black text-white border-[4px] border-black p-6 h-64 overflow-y-auto">
+            <h4 className="font-black mb-4">TRANSCRIPT</h4>
+            <div className="space-y-2 text-sm">
+              {messages.map((m, i) => (
+                <div key={i}>
+                  <span className={m.sender === 'user' ? 'text-green-400' : 'text-yellow-400'}>
+                    {m.sender === 'user' ? 'You' : 'Mirror'}:
+                  </span>{' '}
+                  {m.text}
+                </div>
+              ))}
             </div>
-          )}
+          </div>
         </>
       )}
     </div>
