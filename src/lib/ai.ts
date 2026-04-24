@@ -1,24 +1,83 @@
-export interface AIResponse {
+import { GoogleGenAI } from "@google/genai";
+
+const ai = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY!
+});
+
+export type Mode = 'conversation' | 'story';
+
+interface AIResponse {
   reflection: string;
-  theme: 'kindness' | 'trust' | 'fun' | 'teamwork';
   question: string;
+  theme: string;
 }
 
-export async function analyzeReflection(input: string, context: { positivityBoost: number; depthLevel: number }): Promise<AIResponse> {
-  const themes: ('kindness' | 'trust' | 'fun' | 'teamwork')[] = ['kindness', 'trust', 'fun', 'teamwork'];
-  const theme = themes[Math.floor(Math.random() * themes.length)];
-  
-  let reflection = `I hear you: "${input}". It sounds like you're processing something meaningful.`;
-  if (context.positivityBoost > 1) {
-    reflection += " I'm really glad we're sharing this together!";
-  }
-  
-  let question = 'What part of this matters most to you right now?';
-  if (context.depthLevel > 1) {
-    question = 'If you could see this through the eyes of a teammate, how would they help you navigate it?';
+function isQuestion(input: string) {
+  return input.includes("?") || input.toLowerCase().startsWith("do you") || input.toLowerCase().startsWith("can you");
+}
+
+export async function analyzeReflection(
+  input: string,
+  modifiers: any,
+  mode: Mode
+): Promise<AIResponse> {
+
+  const lower = input.toLowerCase();
+
+  let reflection = '';
+  let question = '';
+  let theme = 'general';
+
+  // =========================
+  // 🧠 REAL AI FOR QUESTIONS
+  // =========================
+  if (mode === 'conversation' && isQuestion(input)) {
+
+    try {
+      const res = await ai.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: `
+You are a thoughtful, calm AI partner in a cooperative intelligence system.
+
+Respond naturally and intelligently to the user's question.
+Be clear, grounded, and human.
+
+User: ${input}
+`
+      });
+
+      const text = res.text || "I'm not sure, but let's explore that together.";
+
+      return {
+        reflection: text,
+        question: "What do you think about that?",
+        theme: "knowledge"
+      };
+
+    } catch (e) {
+      console.error("AI ERROR:", e);
+    }
   }
 
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  // =========================
+  // 🧠 FALLBACK (YOUR SYSTEM)
+  // =========================
 
-  return { reflection, theme, question };
+  if (mode === 'conversation') {
+    reflection = `You're exploring something in real time.`;
+    question = "What stands out to you?";
+    theme = 'reflection';
+  }
+
+  // =========================
+  // 🎮 STORY MODE (we'll fix next step)
+  // =========================
+
+  if (mode === 'story') {
+    reflection = `The world continues to unfold around you.`;
+    question = "What do you do next?";
+    theme = 'story';
+  }
+
+  return { reflection, question, theme };
 }
