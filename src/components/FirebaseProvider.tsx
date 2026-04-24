@@ -7,7 +7,7 @@ import {
   signOut, 
   User 
 } from 'firebase/auth';
-import { doc, getDocFromServer, setDoc, onSnapshot, Timestamp } from 'firebase/firestore';
+import { doc, getDocFromServer, setDoc, Timestamp } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 
 interface FirebaseContextType {
@@ -25,7 +25,6 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Mandatory Connection Test
     const testConnection = async () => {
       try {
         await getDocFromServer(doc(db, 'test', 'connection'));
@@ -37,14 +36,11 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     };
     testConnection();
 
-    // 2. Auth State Listener
     const unsubscribe = onAuthStateChanged(auth, async (u) => {
       if (u) {
-        // Ensure user doc exists
         const userRef = doc(db, 'users', u.uid);
         try {
           const userDoc = await getDocFromServer(userRef);
-          
           if (!userDoc.exists()) {
             await setDoc(userRef, {
               xp: 0,
@@ -54,7 +50,7 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             });
           }
         } catch (e) {
-          console.warn("User profile check skipped (expected for guest first-time or check failure):", e);
+          console.warn("User profile check skipped:", e);
         }
         setUser(u);
       } else {
@@ -69,11 +65,9 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const signIn = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      // Ensure we are using popup as preferred by the environment constraints
       await signInWithPopup(auth, provider);
     } catch (error: any) {
       console.error("Google Sign-In Error:", error.code, error.message);
-      // More descriptive error for common "Unauthorized Domain" or "Popup Blocked" issues
       if (error.code === 'auth/unauthorized-domain') {
         alert(`Sign-in failed: This domain is not authorized in the Firebase Console. Please add mumblejinx.github.io to the Authorized Domains list in the Firebase Console under Authentication > Settings.`);
       } else if (error.code === 'auth/popup-blocked') {

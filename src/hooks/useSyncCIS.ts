@@ -7,7 +7,6 @@ export const useSyncCIS = (userId: string | undefined) => {
   const { setStats, setReflections, setGlobalStats, setLoaded } = useCIS();
 
   useEffect(() => {
-    // 1. Sync Global Stats (Public - always sync if possible)
     const globalRef = doc(db, 'global', 'stats');
     const unsubGlobal = onSnapshot(globalRef, (docSnap) => {
       if (docSnap.exists()) {
@@ -19,16 +18,13 @@ export const useSyncCIS = (userId: string | undefined) => {
       } else {
         setGlobalStats({ totalXp: 0, totalReflections: 0 });
       }
-    }, (error) => console.warn("Global stats sync restricted or failed:", error));
+    }, (error) => console.warn("Global stats sync failed:", error));
 
     if (!userId) {
       setLoaded(false);
-      return () => {
-        unsubGlobal();
-      };
+      return () => unsubGlobal();
     }
 
-    // Sync Profile
     const userRef = doc(db, 'users', userId);
     const unsubUser = onSnapshot(userRef, (docSnap) => {
       if (docSnap.exists()) {
@@ -37,7 +33,6 @@ export const useSyncCIS = (userId: string | undefined) => {
       }
     }, (error) => console.error("User sync error:", error));
 
-    // Sync Reflections
     const reflectionsRef = collection(db, 'users', userId, 'reflections');
     const q = query(reflectionsRef, orderBy('serverTimestamp', 'desc'), limit(50));
     const unsubReflections = onSnapshot(q, (querySnap) => {
@@ -45,7 +40,6 @@ export const useSyncCIS = (userId: string | undefined) => {
         id: d.id,
         ...d.data()
       })) as Reflection[];
-      // We want internal state chronological, but sync is desc for limit
       setReflections([...refs].reverse()); 
       setLoaded(true);
     }, (error) => console.error("Reflections sync error:", error));

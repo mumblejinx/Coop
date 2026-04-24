@@ -20,7 +20,6 @@ export function BottomNav({ current, setView }: BottomNavProps) {
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = current === tab.id;
-        
         return (
           <button
             key={tab.id}

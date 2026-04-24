@@ -1,8 +1,3 @@
-/**
- * Real AI hook for CIS: PLAYER_ONE_COOP
- * This analyzes user input using heuristic modifiers to produce a collaborative response.
- */
-
 export interface AIResponse {
   reflection: string;
   theme: 'kindness' | 'trust' | 'fun' | 'teamwork';
@@ -10,9 +5,6 @@ export interface AIResponse {
 }
 
 export async function analyzeReflection(input: string, context: { positivityBoost: number; depthLevel: number }): Promise<AIResponse> {
-  // In a real build, this would call process.env.GEMINI_API_KEY
-  // For now, we simulate the logic using the provided heuristics
-  
   const themes: ('kindness' | 'trust' | 'fun' | 'teamwork')[] = ['kindness', 'trust', 'fun', 'teamwork'];
   const theme = themes[Math.floor(Math.random() * themes.length)];
   
@@ -26,12 +18,7 @@ export async function analyzeReflection(input: string, context: { positivityBoos
     question = 'If you could see this through the eyes of a teammate, how would they help you navigate it?';
   }
 
-  // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 1000));
 
-  return {
-    reflection,
-    theme,
-    question,
-  };
+  return { reflection, theme, question };
 }

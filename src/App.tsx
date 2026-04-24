@@ -14,7 +14,6 @@ export default function App() {
   const [view, setView] = useState('dashboard');
   const { user, loading, signIn, signInAsGuest, logOut } = useFirebase();
   
-  // Connect store to Firestore
   useSyncCIS(user?.uid);
 
   const renderView = () => {
@@ -41,7 +40,7 @@ export default function App() {
   if (!user) {
     return (
       <div className="min-h-screen bg-[#2d5a27] flex items-center justify-center p-4">
-        <div className="bg-white border-[4px] border-black p-10 shadow-[8_8px_0_0_rgba(0,0,0,1)] max-w-sm w-full text-center space-y-6">
+        <div className="bg-white border-[4px] border-black p-10 shadow-[8px_8px_0_0_rgba(0,0,0,1)] max-w-sm w-full text-center space-y-6">
           <div className="flex justify-center">
             <Gamepad2 className="text-[#FF0040] w-16 h-16" />
           </div>
@@ -68,7 +67,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#2d5a27] font-sans">
-      {/* Top App Bar */}
       <header className="bg-white border-b-[4px] border-black w-full sticky top-0 z-50 h-16 shadow-[0_4px_0_0_rgba(0,0,0,1)]">
         <div className="max-w-7xl mx-auto px-4 h-full flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -109,7 +107,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main Content Area */}
       <main className="pt-10 pb-24 px-4 max-w-7xl mx-auto">
         <AnimatePresence mode="wait">
           <motion.div
