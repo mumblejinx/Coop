@@ -17,7 +17,7 @@ export default function MirrorScreen() {
   const [input, setInput] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [currentAI, setCurrentAI] = useState<{ reflection: string; question: string; theme: string } | null>(null);
+  const [currentAI, setCurrentAI] = useState<any>(null);
 
   const { user } = useFirebase();
   const { addReflectionToFirebase, updateXPInFirebase, getHeuristicModifiers } = useCIS();
@@ -28,7 +28,6 @@ export default function MirrorScreen() {
     setIsAnalyzing(true);
 
     const userMessage = input;
-
     setMessages(prev => [...prev, { sender: 'user', text: userMessage }]);
 
     try {
@@ -51,7 +50,6 @@ export default function MirrorScreen() {
 
       await updateXPInFirebase(user.uid, 50);
 
-      // clear input
       setInput('');
 
     } catch (e) {
@@ -64,22 +62,15 @@ export default function MirrorScreen() {
   return (
     <div className="space-y-8 pb-20">
 
-      {/* MODE SELECT */}
       {!mode && (
         <Section title="MIRROR">
           <div className="space-y-4">
             <p className="font-bold uppercase">Choose your path:</p>
             <div className="flex gap-4">
-              <button
-                onClick={() => setMode('conversation')}
-                className="bg-blue-500 border-[4px] border-black px-6 py-3 font-black text-white"
-              >
+              <button onClick={() => setMode('conversation')} className="bg-blue-500 border-[4px] border-black px-6 py-3 font-black text-white">
                 Conversation
               </button>
-              <button
-                onClick={() => setMode('story')}
-                className="bg-purple-500 border-[4px] border-black px-6 py-3 font-black text-white"
-              >
+              <button onClick={() => setMode('story')} className="bg-purple-500 border-[4px] border-black px-6 py-3 font-black text-white">
                 Story Game
               </button>
             </div>
@@ -87,7 +78,6 @@ export default function MirrorScreen() {
         </Section>
       )}
 
-      {/* MAIN INTERACTION */}
       {mode && (
         <>
           <Section title="MIRROR">
@@ -107,57 +97,50 @@ export default function MirrorScreen() {
             )}
           </Section>
 
-          {/* INPUT */}
-          <div className="bg-white border-[4px] border-black p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
+          <div className="bg-white border-[4px] border-black p-6">
             <textarea
               value={input}
               onChange={e => setInput(e.target.value)}
               className="w-full border-[4px] border-black p-4 font-bold min-h-[120px]"
-              placeholder="Type your response..."
             />
-
             <div className="mt-6 flex justify-end">
-              <button
-                onClick={handleReflect}
-                disabled={isAnalyzing || !input.trim()}
-                className="bg-[#e9003a] border-[4px] border-black px-12 py-4 text-white font-black uppercase text-xl"
-              >
+              <button onClick={handleReflect} className="bg-[#e9003a] border-[4px] border-black px-12 py-4 text-white font-black">
                 {isAnalyzing ? "THINKING..." : "SHARE"}
               </button>
             </div>
           </div>
 
-          {/* THEME + SYSTEM */}
-          {currentAI && (
+          {/* CONVERSATION ONLY */}
+          {mode === 'conversation' && currentAI && (
             <div className="space-y-4">
-
               <div className="bg-yellow-400 border-[4px] border-black p-4 font-black uppercase">
                 Theme Detected: {currentAI.theme}
               </div>
 
-              <div className="bg-black text-white border-[4px] border-black p-4 font-mono text-xs">
+              <div className="bg-black border-[4px] border-black p-4 font-mono text-xs text-green-400">
                 <p>&gt; Memory Stored</p>
                 <p>&gt; Interaction Logged</p>
                 <p>&gt; System Stable</p>
               </div>
-
             </div>
           )}
 
-          {/* TRANSCRIPT */}
-          <div className="bg-black text-white border-[4px] border-black p-6 h-64 overflow-y-auto">
-            <h4 className="font-black mb-4">TRANSCRIPT</h4>
-            <div className="space-y-2 text-sm">
-              {messages.map((m, i) => (
-                <div key={i}>
-                  <span className={m.sender === 'user' ? 'text-green-400' : 'text-yellow-400'}>
-                    {m.sender === 'user' ? 'You' : 'Mirror'}:
-                  </span>{' '}
-                  {m.text}
-                </div>
-              ))}
+          {/* TRANSCRIPT (ONLY AFTER FIRST MESSAGE) */}
+          {messages.length > 0 && (
+            <div className="bg-white text-black border-[4px] border-black p-6 h-64 overflow-y-auto">
+              <h4 className="font-black mb-4">TRANSCRIPT</h4>
+              <div className="space-y-2 text-sm">
+                {messages.map((m, i) => (
+                  <div key={i}>
+                    <span className={m.sender === 'user' ? 'text-blue-600' : 'text-red-600'}>
+                      {m.sender === 'user' ? 'You' : 'Mirror'}:
+                    </span>{' '}
+                    {m.text}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </>
       )}
     </div>

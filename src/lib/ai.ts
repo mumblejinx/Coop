@@ -6,20 +6,24 @@ interface AIResponse {
   theme: string;
 }
 
-// prevent repeated questions
+// memory to prevent loops
 let lastQuestion = "";
+let lastTopic = "";
 
-function getVariedQuestion(options: string[]) {
+// STORY STATE (real progression)
+let storyState = {
+  started: false,
+  step: 0,
+  decoded: false,
+  doorOpen: false
+};
+
+function pickNew(options: string[]) {
   const filtered = options.filter(q => q !== lastQuestion);
   const choice = filtered[Math.floor(Math.random() * filtered.length)];
   lastQuestion = choice;
   return choice;
 }
-
-// simple story state
-let storyState = {
-  started: false
-};
 
 export async function analyzeReflection(
   input: string,
@@ -34,119 +38,148 @@ export async function analyzeReflection(
   let theme = 'general';
 
   // =========================
-  // 🧠 CONVERSATION MODE
+  // 🧠 CONVERSATION MODE (SMARTER)
   // =========================
   if (mode === 'conversation') {
 
-    const responses = [
-      {
-        check: ['good', 'nice', 'happy'],
-        reflection: `That sounds like a genuinely good moment.`,
-        questions: [
-          "What’s been contributing to that?",
-          "What part of your day made it feel that way?",
-          "Do you want more days like this?"
-        ],
-        theme: 'positivity'
-      },
-      {
-        check: ['stress', 'anxious', 'worried'],
-        reflection: `It sounds like something is weighing on you.`,
-        questions: [
-          "What feels most difficult right now?",
-          "What’s causing the most pressure?",
-          "What would help even a little?"
-        ],
-        theme: 'stress'
-      },
-      {
-        check: ['bathroom'],
-        reflection: `You're balancing something immediate with curiosity.`,
-        questions: [
-          "What made you stay instead of stepping away?",
-          "What feels more important right now?"
-        ],
-        theme: 'conflict'
-      }
-    ];
+    if (lower.includes('website') || lower.includes('project')) {
+      reflection = `You're thinking about whether this system will actually work and matter.`;
+      question = pickNew([
+        "What would success look like to you?",
+        "What part of this feels uncertain?",
+        "What would make this feel real instead of experimental?"
+      ]);
+      theme = 'purpose';
+      lastTopic = 'project';
+    }
 
-    const match = responses.find(r =>
-      r.check.some(word => lower.includes(word))
-    );
+    else if (lower.includes('music') || lower.includes('album') || lower.includes('girl talk')) {
+      reflection = `You're shifting into something cultural and experiential — bringing music into the space.`;
+      question = pickNew([
+        "What do you like about that album?",
+        "How does it affect your mood right now?",
+        "Does it change how you're thinking?"
+      ]);
+      theme = 'expression';
+      lastTopic = 'music';
+    }
 
-    if (match) {
-      reflection = match.reflection;
-      question = getVariedQuestion(match.questions);
-      theme = match.theme;
-    } else {
-      reflection = `You're noticing something about your experience right now.`;
-      question = getVariedQuestion([
-        "What stands out most to you?",
-        "What feels important right now?",
-        "What are you paying attention to?"
+    else if (lower.includes('shower') || lower.includes('bathroom')) {
+      reflection = `You're balancing physical needs with curiosity and focus.`;
+      question = pickNew([
+        "What made you stay instead of stepping away?",
+        "Do you want to follow that instinct or override it?"
+      ]);
+      theme = 'awareness';
+      lastTopic = 'body';
+    }
+
+    else if (lastTopic === 'project') {
+      reflection = `You're still circling around the idea of whether this works.`;
+      question = pickNew([
+        "What part of it feels closest to working?",
+        "What feels like it's missing?",
+        "Where does it break down for you?"
+      ]);
+      theme = 'analysis';
+    }
+
+    else {
+      reflection = `You're exploring what's on your mind in real time.`;
+      question = pickNew([
+        "What stands out most right now?",
+        "What feels most real in this moment?",
+        "Where is your attention going?"
       ]);
       theme = 'reflection';
     }
   }
 
   // =========================
-  // 🎮 STORY MODE
+  // 🎮 STORY MODE (REAL PROGRESSION)
   // =========================
   if (mode === 'story') {
 
+    // START
     if (!storyState.started) {
       storyState.started = true;
+      storyState.step = 1;
 
-      reflection = `You wake up in a dimly lit room. A metal door stands to one side. Strange markings cover the wall. A low hum fills the air.`;
+      reflection = `You wake up in a dimly lit room. A sealed metal door stands ahead. Strange markings glow faintly on the wall.`;
 
-      question = "Do you look around, inspect the markings, or go to the door?";
+      question = "Do you look around, inspect the markings, or approach the door?";
       theme = 'mystery';
     }
 
+    // LOOK AROUND
     else if (lower.includes('look')) {
-      reflection = `You scan the room. The light flickers overhead. The markings look intentional — not random.`;
+      storyState.step = 2;
 
-      question = "Do you inspect the markings or approach the door?";
+      reflection = `You scan the room. It's small. No windows. The markings are the only unusual feature.`;
+
+      question = "Do you inspect the markings more closely or go to the door?";
       theme = 'observation';
     }
 
+    // MARKINGS
     else if (lower.includes('mark')) {
-      reflection = `The markings form a pattern. It feels like a warning — or instructions.`;
+      storyState.step = 3;
 
-      question = "Do you try to decode it or ignore it?";
+      reflection = `The markings form a repeating pattern. It looks like a coded message.`;
+
+      question = "Do you try to decode it?";
       theme = 'mystery';
     }
 
-    else if (lower.includes('door')) {
-      reflection = `You move toward the door. The humming grows louder, reacting to you.`;
+    // DECODE SUCCESS
+    else if (lower.includes('decode') && !storyState.decoded) {
+      storyState.decoded = true;
+      storyState.step = 4;
 
-      question = "Do you open it or step back?";
-      theme = 'tension';
+      reflection = `You focus. Slowly, the symbols resolve into meaning: "THE DOOR OPENS FOR THOSE WHO SEE."`;
+
+      question = "Do you go to the door now?";
+      theme = 'breakthrough';
     }
 
-    else if (lower.includes('who') || lower.includes('call')) {
-      reflection = `Your voice echoes. Silence… then something shifts behind the door.`;
+    // DOOR BEFORE DECODE
+    else if (lower.includes('door') && !storyState.decoded) {
+      reflection = `The door doesn't respond. Something is missing.`;
 
-      question = "Do you move toward the sound or stay still?";
-      theme = 'tension';
+      question = "Do you examine the markings first?";
+      theme = 'block';
     }
 
-    else if (lower.includes('what') || lower.includes('where')) {
-      reflection = `You try to understand your surroundings, but something feels intentionally unclear.`;
+    // DOOR AFTER DECODE
+    else if (lower.includes('door') && storyState.decoded && !storyState.doorOpen) {
+      storyState.doorOpen = true;
+      storyState.step = 5;
 
-      question = "What do you focus on next?";
-      theme = 'mystery';
+      reflection = `You step forward. The door reacts — unlocking with a deep metallic click. It slowly opens into darkness beyond.`;
+
+      question = "Do you step through?";
+      theme = 'progress';
+    }
+
+    // STEP THROUGH
+    else if (lower.includes('step') && storyState.doorOpen) {
+      storyState.step = 6;
+
+      reflection = `You step through the doorway… and the world shifts. You're no longer in a room. You're somewhere else entirely.`;
+
+      question = "Do you keep moving forward or look around?";
+      theme = 'transition';
     }
 
     else {
-      reflection = `You hesitate. The room remains still, but the hum continues.`;
+      reflection = `You pause. The room remains quiet, waiting.`;
 
-      question = "Do you act or wait?";
-      theme = 'unknown';
+      question = "What do you do next?";
+      theme = 'idle';
     }
   }
 
-  await new Promise(res => setTimeout(res, 500));
+  await new Promise(res => setTimeout(res, 400));
 
   return { reflection, question, theme };
 }
