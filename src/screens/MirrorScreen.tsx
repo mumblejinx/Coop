@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Section } from '../components/layout/Section';
 import { useCIS } from '../state/cisStore';
 import { analyzeReflection } from '../lib/ai';
-import { Sparkles, Brain, Terminal } from 'lucide-react';
+import { Sparkles, Brain } from 'lucide-react';
 import { useFirebase } from '../components/FirebaseProvider';
 
 interface Turn {
@@ -28,13 +28,15 @@ export default function MirrorScreen() {
   const handleReflect = async () => {
     if (!input.trim() || !user) return;
 
+    const userInput = input;
+    setInput(''); // ✅ clear immediately
     setIsAnalyzing(true);
 
     try {
-      const res = await analyzeReflection(input, getHeuristicModifiers());
+      const res = await analyzeReflection(userInput, getHeuristicModifiers());
 
       const turn: Turn = {
-        input,
+        input: userInput,
         reflection: res.reflection,
         question: res.question,
         theme: res.theme
@@ -46,15 +48,13 @@ export default function MirrorScreen() {
       setIsAnalyzing(false);
 
       await addReflectionToFirebase(user.uid, {
-        input,
+        input: userInput,
         reflection: res.reflection,
         question: res.question,
         theme: res.theme as any
       });
 
       await updateXPInFirebase(user.uid, 50);
-
-      setInput('');
 
     } catch (e) {
       console.error(e);
@@ -80,8 +80,9 @@ export default function MirrorScreen() {
               {currentTurn.reflection}
             </p>
             <div className="border-t-2 border-black pt-3">
-              <p className="font-black uppercase text-sm">Next Move</p>
-              <p className="font-bold">{currentTurn.question}</p>
+              <p className="font-bold text-lg">
+                {currentTurn.question}
+              </p>
             </div>
           </div>
         )}
@@ -122,7 +123,7 @@ export default function MirrorScreen() {
         </div>
       )}
 
-      {/* SYSTEM */}
+      {/* SYSTEM STATUS */}
       {currentTurn && (
         <div className="border-[4px] border-black bg-black text-green-400 p-6 font-mono text-sm shadow-[8px_8px_0_0_rgba(0,0,0,1)]">
           <p>&gt; MEMORY STORED</p>
