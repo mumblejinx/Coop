@@ -1,8 +1,14 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY!
-});
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+let ai: GoogleGenAI | null = null;
+
+if (apiKey) {
+  ai = new GoogleGenAI({ apiKey });
+} else {
+  console.warn("⚠️ No Gemini API key found.");
+}
 
 export type Mode = 'conversation' | 'story';
 
@@ -13,7 +19,8 @@ interface AIResponse {
 }
 
 function isQuestion(input: string) {
-  return input.includes("?") || input.toLowerCase().startsWith("do you") || input.toLowerCase().startsWith("can you");
+  const lower = input.toLowerCase();
+  return input.includes("?") || lower.startsWith("do you") || lower.startsWith("can you");
 }
 
 export async function analyzeReflection(
@@ -22,62 +29,52 @@ export async function analyzeReflection(
   mode: Mode
 ): Promise<AIResponse> {
 
-  const lower = input.toLowerCase();
-
-  let reflection = '';
-  let question = '';
-  let theme = 'general';
-
-  // =========================
-  // 🧠 REAL AI FOR QUESTIONS
-  // =========================
-  if (mode === 'conversation' && isQuestion(input)) {
-
+  // 🧠 REAL AI
+  if (mode === 'conversation' && isQuestion(input) && ai) {
     try {
       const res = await ai.models.generateContent({
         model: "gemini-2.0-flash",
         contents: `
-You are a thoughtful, calm AI partner in a cooperative intelligence system.
+You are a thoughtful, grounded AI partner.
 
-Respond naturally and intelligently to the user's question.
-Be clear, grounded, and human.
+Answer clearly and naturally.
+Do not avoid the user's question.
 
 User: ${input}
 `
       });
 
-      const text = res.text || "I'm not sure, but let's explore that together.";
-
       return {
-        reflection: text,
+        reflection: res.text || "I'm not sure, but let's explore that.",
         question: "What do you think about that?",
         theme: "knowledge"
       };
 
     } catch (e) {
-      console.error("AI ERROR:", e);
+      console.error(e);
     }
   }
 
-  // =========================
-  // 🧠 FALLBACK (YOUR SYSTEM)
-  // =========================
-
+  // fallback
   if (mode === 'conversation') {
-    reflection = `You're exploring something in real time.`;
-    question = "What stands out to you?";
-    theme = 'reflection';
+    return {
+      reflection: "You're exploring something in real time.",
+      question: "What stands out to you?",
+      theme: "reflection"
+    };
   }
-
-  // =========================
-  // 🎮 STORY MODE (we'll fix next step)
-  // =========================
 
   if (mode === 'story') {
-    reflection = `The world continues to unfold around you.`;
-    question = "What do you do next?";
-    theme = 'story';
+    return {
+      reflection: "The world continues to unfold around you.",
+      question: "What do you do next?",
+      theme: "story"
+    };
   }
 
-  return { reflection, question, theme };
+  return {
+    reflection: "Something unexpected happened.",
+    question: "What now?",
+    theme: "unknown"
+  };
 }
